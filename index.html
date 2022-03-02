@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+    <link rel="stylesheet" 
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<head>
+   <style>
+       body{
+           background-color: black;
+           color:gainsboro
+       }
+       .results{
+           width: 80%;
+           display: grid;
+           grid-template-columns: repeat(4,1fr);
+           grid-gap: 10px;
+           margin: auto;
+           margin-top: 20px;
+       }
+       .header{
+           /* border: 1px solid grey; */
+           width: 80%;
+           height: 100px;
+           margin: auto;
+           display: grid;
+           grid-template-columns: 30% 70%;
+           justify-content:space-around;
+           align-items: center;
+           
+       }
+       .res{
+           width:100%;
+           margin: auto;
+           font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+       }
+       .image{
+           width: 100%;
+       }
+       .search{
+           width: 300px;
+           height: 30px;
+       }
+       button{
+           width: 80px;
+           height: 35px;
+           margin-left: 10px;
+       }
+   </style>
+</head>
+<body>
+   <div class="header">
+       <div><i class="fa fa-youtube-play" style="font-size:90px;color:red"> </i> </div>
+       <div> <input class='search' type="text" placeholder="search here">
+        <button onclick="searchVid()">Search</button></div>
+   </div>
+
+    <div class="results">
+    </div>
+</body>
+</html>
+<script>
+   const API="AIzaSyDofU4Ho8PkFYgLdNO4n5zWHNOim5_oMEQ"
+
+
+async function popularVideos(){
+   try{
+    let response=await fetch
+(`https://www.googleapis.com/youtube/v3/videos?part=contentDetails&chart=mostPopular&regionCode=IN&maxResults=25&key=${API}&part=snippet`)
+   
+  let data=await response.json()
+
+  let videos=data.items
+  appendVideos(videos)
+//   console.log("data:",data)
+// console.log('videos:',videos)
+}
+   catch(e){
+       console.log("e:",e)
+   }
+}
+popularVideos()
+
+async function searchVid(){
+    try{
+    let video_query=document.querySelector('.search').value
+    let response=await fetch
+(`https://youtube.googleapis.com/youtube/v3/search?part=snippet&q=${video_query}%20z&type=video&key=${API}&maxResults=20`)
+   
+  let data=await response.json()
+
+  let result=data.items
+  showResults(result)
+  console.log("result:",result)
+}
+   catch(e){
+       console.log("e:",e)
+   }
+}
+
+
+
+const appendVideos=(items) =>{
+
+    items.forEach((elem) => {
+        let{id}=elem
+        let iframe=document.createElement('iframe')
+        iframe.src=`https://www.youtube.com/embed/${id}`
+        iframe.height='265'
+        iframe.width='300'
+        iframe.setAttribute('allowfullscreen',true)
+
+        document.querySelector('.results').append(iframe)
+    });
+}
+
+const showResults=(elems) =>{
+   document.querySelector('.results').innerHTML=null
+    elems.forEach(({snippet,id:{videoId}})=>{
+    // console.log('snippet:',snippet)
+
+    let div=document.createElement('div')
+    div.setAttribute('class','res')
+
+    let title=document.createElement('p')
+    title.innerText=snippet.title
+    let img=document.createElement('img')
+    img.src=snippet.thumbnails.medium.url
+    img.setAttribute('class','image')
+
+    let data_to_send={
+        snippet,
+        videoId,
+    }
+   
+    div.onclick=()=>{
+        show_vid(data_to_send)
+    }
+
+    div.append(img,title)
+    document.querySelector('.results').append(div)
+    })
+}
+
+function show_vid(ele){
+   localStorage.setItem('clicked',JSON.stringify(ele))
+   window.location.href='video.html'
+}
+</script>
